@@ -1,0 +1,47 @@
+name: prove-everywhere-server
+version: 0.1
+description: wercker box for prove-everywhere-server
+type: main
+inherits: amutake/ssreflect@0.0.1
+platform: ubuntu@12.04
+keywords:
+  - prove-everywhere
+packages:
+  - ghc@7.8.3
+  - cabal-install@1.20.0.3
+script: |
+  # variables
+  export GHC_VER=7.8.3
+  export CABAL_VER=1.20.0.3
+
+  export GHC_TARBALL=ghc-${GHC_VER}-x86_64-unknown-linux-deb7.tar.xz
+  export CABAL_TARBALL=cabal-install-${CABAL_VER}.tar.gz
+
+  # install dependencies
+  sudo apt-get update -y
+  sudo apt-get install -y build-essential wget curl libgmp-dev freeglut3-dev zlib1g-dev
+
+  # install ghc
+  cd $HOME
+  wget http://www.haskell.org/ghc/dist/${GHC_VER}/${GHC_TARBALL}
+  tar xf $GHC_TARBALL
+  cd ghc-${GHC_VER}
+  ./configure
+  sudo make install
+
+  # install cabal-install
+  cd $HOME
+  wget http://hackage.haskell.org/package/cabal-install-${CABAL_VER}/${CABAL_TARBALL}
+  tar xf $CABAL_TARBALL
+  cd cabal-install-${CABAL_VER}
+  ./bootstrap.sh
+
+  # set .cabal/bin into PATH
+  export PATH=$HOME/.cabal/bin:$PATH
+  echo 'export PATH=$HOME/.cabal/bin:$PATH' | sudo tee -a /etc/profile
+
+  # final check
+  ls -la ~/
+  coqtop -v
+  ghc --version
+  cabal --version
